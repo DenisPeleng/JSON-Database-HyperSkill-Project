@@ -21,11 +21,9 @@ class Session extends Thread {
         ) {
             String answerFromClient = input.readUTF();
             System.out.printf("Received: %s\n", answerFromClient);
-            int number = Integer.parseInt(answerFromClient.split("#")[1].trim());
-            //     String answerFromServer = processCommand(answerFromClient);
-            String answerFromServer = String.format("A record # %d was sent!", number);
-            System.out.printf("Sent: %s\n", answerFromServer);
-            output.writeUTF(answerFromServer);
+            String resultAnswer = processCommand(answerFromClient);
+            System.out.printf("Sent: %s\n", resultAnswer);
+            output.writeUTF(resultAnswer);
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -34,38 +32,39 @@ class Session extends Thread {
 
     private String processCommand(String fullLineCommand) {
         String[] database = getDatabase();
-        while (true) {
+        String[] commandArr = fullLineCommand.split(" ");
 
-            String[] commandArr = fullLineCommand.split(" ");
-            try {
-                String command = commandArr[0].toLowerCase();
-                int numberArr = Integer.parseInt(commandArr[1]) - 1;
-                if (numberArr < 0 || numberArr > database.length) {
-                    throw new IllegalArgumentException();
-                }
-                switch (command) {
-                    case "set":
-                        String text = fullLineCommand.replace(command + " ", "").replace(numberArr + " ", "");
-                        database[numberArr] = text;
-                        System.out.println("OK");
-                        break;
-                    case "get":
-                        if (database[numberArr] != null) {
-                            System.out.println(database[numberArr]);
-                        } else {
-                            System.out.println("ERROR");
-                        }
-                        break;
-                    case "delete":
-                        database[numberArr] = null;
-                        System.out.println("OK");
-                        break;
-                }
+        try {
 
-            } catch (Exception exception) {
-                System.out.println("ERROR");
+            String command = commandArr[0].toLowerCase();
+            if (command.equals("exit")) {
+                Server.setIsRunning(false);
+                return "OK";
             }
+            int numberArr = Integer.parseInt(commandArr[1]) - 1;
+            if (numberArr < 0 || numberArr > database.length) {
+                throw new IllegalArgumentException();
+            }
+            switch (command) {
+                case "set":
+                    String text = fullLineCommand.replace(command + " ", "").replace(numberArr + " ", "");
+                    database[numberArr] = text;
+                    return "OK";
+                case "get":
+                    if (database[numberArr] != null) {
+                        return database[numberArr];
+                    } else {
+                        return "ERROR";
+                    }
+                case "delete":
+                    database[numberArr] = null;
+                    return "OK";
+            }
+
+        } catch (Exception exception) {
+            return ("ERROR");
         }
+        return ("ERROR");
     }
 
 }
