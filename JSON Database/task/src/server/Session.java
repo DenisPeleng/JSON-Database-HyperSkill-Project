@@ -1,11 +1,12 @@
 package server;
 
+import com.google.gson.Gson;
+import server.commands.*;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
-
-import static server.Database.getDatabase;
 
 class Session extends Thread {
     private final Socket socket;
@@ -19,9 +20,11 @@ class Session extends Thread {
                 DataInputStream input = new DataInputStream(socket.getInputStream());
                 DataOutputStream output = new DataOutputStream(socket.getOutputStream())
         ) {
-            String answerFromClient = input.readUTF();
-            System.out.printf("Received: %s\n", answerFromClient);
-            String resultAnswer = processCommand(answerFromClient);
+            String requestFromClient = input.readUTF();
+            System.out.printf("Received: %s\n", requestFromClient);
+            Request receivedRequest = new Gson().fromJson(requestFromClient, Request.class);
+            Response resultResponse = processCommand(receivedRequest);
+            String resultAnswer = new Gson().toJson(resultResponse);
             System.out.printf("Sent: %s\n", resultAnswer);
             output.writeUTF(resultAnswer);
             socket.close();
@@ -30,41 +33,27 @@ class Session extends Thread {
         }
     }
 
-    private String processCommand(String fullLineCommand) {
-        String[] database = getDatabase();
-        String[] commandArr = fullLineCommand.split(" ");
-
-        try {
-
-            String command = commandArr[0].toLowerCase();
-            if (command.equals("exit")) {
-                Server.setIsRunning(false);
-                return "OK";
+    private Response processCommand(Request request) {
+        String requestType = request.getType();
+        Command command = new ExitCommand();
+        switch (requestType) {
+            case "exit": {
+                command = new ExitCommand();
+                break;
             }
-            int numberArr = Integer.parseInt(commandArr[1]) - 1;
-            if (numberArr < 0 || numberArr > database.length) {
-                throw new IllegalArgumentException();
+            case "get": {
+                command = new GetCommand(request);
+                break;
             }
-            switch (command) {
-                case "set":
-                    String text = fullLineCommand.replace(command + " ", "").replace(numberArr + " ", "");
-                    database[numberArr] = text;
-                    return "OK";
-                case "get":
-                    if (database[numberArr] != null) {
-                        return database[numberArr];
-                    } else {
-                        return "ERROR";
-                    }
-                case "delete":
-                    database[numberArr] = null;
-                    return "OK";
+            case "delete": {
+                command = new DeleteCommand(request);
+                break;
             }
-
-        } catch (Exception exception) {
-            return ("ERROR");
+            case "set": {
+                command = new SetCommand(request);
+                break;
+            }
         }
-        return ("ERROR");
+        return command.execute();
     }
-
 }

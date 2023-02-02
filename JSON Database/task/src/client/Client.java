@@ -1,32 +1,30 @@
 package client;
 
-import client.CommandRequest.*;
+import client.commandRequest.*;
 
 public class Client {
     public static void startClient(ArgsCommandLine consoleArgs) {
         try (ServerConnection serverConnection = new ServerConnection()) {
             serverConnection.createConnection();
             String command = consoleArgs.getRequestType();
-            Command commandRequest = new ExitCommandRequest(serverConnection);
+            Request request = new Request("exit");
             switch (command) {
-                case "get": {
-                    commandRequest = new GetCommandRequest(serverConnection, consoleArgs.getIndexOfCell());
+                case "get":
+                case "delete": {
+                    request = new Request(command, consoleArgs.getKey());
                     break;
                 }
                 case "set": {
-                    commandRequest = new SetCommandRequest(serverConnection, consoleArgs.getIndexOfCell(), consoleArgs.getText());
-                    break;
-                }
-                case "delete": {
-                    commandRequest = new DeleteCommandRequest(serverConnection, consoleArgs.getIndexOfCell());
+                    request = new Request(command, consoleArgs.getKey(), consoleArgs.getText());
                     break;
                 }
                 case "exit": {
-                    commandRequest = new ExitCommandRequest(serverConnection);
+                    request = new Request(command);
                     break;
                 }
             }
-            commandRequest.execute();
+            SendCommand sendCommand = new SendCommand(serverConnection, request);
+            sendCommand.execute();
         }
     }
 }

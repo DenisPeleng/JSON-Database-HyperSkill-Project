@@ -1,27 +1,26 @@
-package client.CommandRequest;
+package client.commandRequest;
 
 import client.ServerConnection;
+import com.google.gson.Gson;
+
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-abstract class Request implements Command {
+public class SendCommand {
     DataOutputStream outputStream;
     DataInputStream inputStream;
-    String requestBody;
+    Request request;
 
-    Request(ServerConnection serverConnection) {
+    public SendCommand(ServerConnection serverConnection, Request request) {
         outputStream = serverConnection.getOutputStream();
         inputStream = serverConnection.getInputStream();
+        this.request = request;
     }
 
-    public void setRequestBody(String requestBody) {
-        this.requestBody = requestBody;
-    }
-
-    @Override
     public void execute() {
         try {
+            String requestBody = new Gson().toJson(request);
             outputStream.writeUTF(requestBody);
             System.out.printf("Sent: %s\n", requestBody);
             String answerFromServer = inputStream.readUTF();
