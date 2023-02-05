@@ -1,4 +1,4 @@
-package client.commandRequest;
+package client.commandrequest;
 
 import client.ServerConnection;
 import com.google.gson.Gson;

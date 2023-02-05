@@ -6,13 +6,20 @@ import server.commands.*;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 class Session extends Thread {
-    private final Socket socket;
+    private Socket socket;
+    private final ServerSocket serverSocket;
 
-    public Session(Socket socketForClient) {
-        this.socket = socketForClient;
+    public Session(ServerSocket serverSocket) throws IOException {
+        this.serverSocket = serverSocket;
+        try {
+            this.socket = serverSocket.accept();
+        } catch (SocketException ignore) {
+        }
     }
 
     public void run() {
@@ -28,6 +35,10 @@ class Session extends Thread {
             System.out.printf("Sent: %s\n", resultAnswer);
             output.writeUTF(resultAnswer);
             socket.close();
+            if (!Server.isRunning) {
+                Database.saveDatabase();
+                serverSocket.close();
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -56,4 +67,5 @@ class Session extends Thread {
         }
         return command.execute();
     }
+
 }

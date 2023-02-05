@@ -1,30 +1,45 @@
 package client;
 
-import client.commandRequest.*;
+import client.commandrequest.*;
+import com.google.gson.Gson;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class Client {
+    private static final String FILE_REQUEST_PATH_LOCAL_ENVIRONMENT = System.getProperty("user.dir") + "/src/client/data/";
     public static void startClient(ArgsCommandLine consoleArgs) {
         try (ServerConnection serverConnection = new ServerConnection()) {
             serverConnection.createConnection();
-            String command = consoleArgs.getRequestType();
             Request request = new Request("exit");
-            switch (command) {
-                case "get":
-                case "delete": {
-                    request = new Request(command, consoleArgs.getKey());
-                    break;
-                }
-                case "set": {
-                    request = new Request(command, consoleArgs.getKey(), consoleArgs.getText());
-                    break;
-                }
-                case "exit": {
-                    request = new Request(command);
-                    break;
+            if (consoleArgs.isRequestInJson()) {
+                Gson gson = new Gson();
+                String jsonString = Files.readString(Path.of(FILE_REQUEST_PATH_LOCAL_ENVIRONMENT + consoleArgs.getInputRequestFilePath()));
+                request = gson.fromJson(jsonString, Request.class);
+
+            } else {
+                String command = consoleArgs.getRequestType();
+                switch (command) {
+                    case "get":
+                    case "delete": {
+                        request = new Request(command, consoleArgs.getKey());
+                        break;
+                    }
+                    case "set": {
+                        request = new Request(command, consoleArgs.getKey(), consoleArgs.getText());
+                        break;
+                    }
+                    case "exit": {
+                        request = new Request(command);
+                        break;
+                    }
                 }
             }
             SendCommand sendCommand = new SendCommand(serverConnection, request);
             sendCommand.execute();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 }

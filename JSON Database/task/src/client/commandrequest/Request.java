@@ -1,4 +1,4 @@
-package client.commandRequest;
+package client.commandrequest;
 
 public class Request {
 
