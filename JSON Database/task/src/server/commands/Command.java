@@ -1,6 +1,6 @@
 package server.commands;
 
-import server.Response;
+import server.requests.Response;
 
 public interface Command {
     Response execute();

@@ -1,7 +1,11 @@
 package server;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import server.commands.*;
+import server.requests.Request;
+import server.requests.RequestGsonDeserializer;
+import server.requests.Response;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -29,7 +33,8 @@ class Session extends Thread {
         ) {
             String requestFromClient = input.readUTF();
             System.out.printf("Received: %s\n", requestFromClient);
-            Request receivedRequest = new Gson().fromJson(requestFromClient, Request.class);
+            Gson gson = new GsonBuilder().registerTypeAdapter(Request.class, new RequestGsonDeserializer()).create();
+            Request receivedRequest = gson.fromJson(requestFromClient, Request.class);
             Response resultResponse = processCommand(receivedRequest);
             String resultAnswer = new Gson().toJson(resultResponse);
             System.out.printf("Sent: %s\n", resultAnswer);

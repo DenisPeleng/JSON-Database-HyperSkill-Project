@@ -1,8 +1,11 @@
 package server.commands;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import server.Database;
-import server.Request;
-import server.Response;
+import server.requests.Request;
+import server.requests.Response;
 
 public class DeleteCommand implements Command {
     private final Request request;
@@ -17,7 +20,9 @@ public class DeleteCommand implements Command {
             Database.deleteValue(request.getKey());
             return new Response("OK");
         } catch (Exception exception) {
-            return new Response("ERROR", exception.getMessage());
+            String errorMessage = new Gson().toJson(exception.getMessage());
+            JsonElement jsonElementErrorMessage = JsonParser.parseString(errorMessage);
+            return new Response("ERROR", jsonElementErrorMessage);
         }
     }
 }

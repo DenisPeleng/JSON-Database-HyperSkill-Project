@@ -1,16 +1,22 @@
-package client.commandrequest;
+package server.requests;
 
 import com.google.gson.JsonElement;
 
 public class Request {
+    String type;
+    JsonElement key;
+    JsonElement value;
 
-    private final String type;
-    private  JsonElement key = null;
-    private  JsonElement value = null;
+    public String getType() {
+        return type;
+    }
 
+    public JsonElement getKey() {
+        return key;
+    }
 
-    public void setValue(JsonElement value) {
-        this.value = value;
+    public JsonElement getValue() {
+        return value;
     }
 
     public Request(String typeRequest, JsonElement key, JsonElement value) {
@@ -27,4 +33,4 @@ public class Request {
     public Request(String typeRequest) {
         this.type = typeRequest;
     }
- }
+}

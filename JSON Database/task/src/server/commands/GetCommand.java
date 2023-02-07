@@ -1,8 +1,11 @@
 package server.commands;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonParser;
 import server.Database;
-import server.Request;
-import server.Response;
+import server.requests.Request;
+import server.requests.Response;
 
 public class GetCommand implements Command {
     private final Request request;
@@ -14,10 +17,12 @@ public class GetCommand implements Command {
     @Override
     public Response execute() {
         try {
-            String value = Database.getValue(request.getKey());
-            return new Response("OK", value);
+            JsonElement value = Database.getValue(request.getKey());
+                        return new Response("OK", value);
         } catch (Exception exception) {
-            return new Response("ERROR", exception.getMessage());
+            String errorMessage = new Gson().toJson(exception.getMessage());
+            JsonElement jsonElementErrorMessage = JsonParser.parseString(errorMessage);
+            return new Response("ERROR", jsonElementErrorMessage);
         }
     }
 }

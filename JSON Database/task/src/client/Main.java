@@ -1,5 +1,6 @@
 package client;
 
+import client.argsprocessing.ArgsCommandLine;
 import com.beust.jcommander.JCommander;
 
 public class Main {
